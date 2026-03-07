@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Shield | AI Detection</title>
+    <!-- Google Fonts for typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="navbar">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <h1>Deepfake Shield</h1>
+            </div>
+            <nav>
+                <button id="nav-scanner" class="nav-btn active">Scanner</button>
+                <button id="nav-history" class="nav-btn">History</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Scanner View -->
+            <section id="view-scanner" class="view active">
+                <div class="hero">
+                    <h2>Detect Manipulated Media in Seconds</h2>
+                    <p>Upload an image or video to analyze it using our state-of-the-art detection pipeline.</p>
+                </div>
+
+                <div class="upload-container" id="drop-zone">
+                    <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.mp4" hidden>
+                    <div class="upload-content">
+                        <div class="upload-icon">📁</div>
+                        <h3>Drag & Drop media here</h3>
+                        <p>or <button class="text-btn" onclick="document.getElementById('file-input').click()">click to browse</button></p>
+                        <p class="upload-limits">Supports JPG, PNG, MP4 up to 50MB</p>
+                    </div>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="preview-area" class="hidden">
+                    <div class="media-preview" id="media-preview-container"></div>
+                    <div class="media-info">
+                        <span id="preview-filename">filename.jpg</span>
+                        <button id="btn-analyze" class="primary-btn">Analyze Media</button>
+                        <button id="btn-cancel" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Analyzing Progress Pipeline -->
+                <div id="progress-area" class="hidden">
+                    <div class="progress-title">Analysis Pipeline Running...</div>
+                    <div class="pipeline-container">
+                        <ul class="pipeline-steps">
+                            <li id="step-1" class="step pending">File Validation</li>
+                            <li id="step-2" class="step pending" style="display:none;">Frame Extraction</li>
+                            <li id="step-3" class="step pending">Face & Artifact Detection</li>
+                            <li id="step-4" class="step pending">Model Inference</li>
+                            <li id="step-5" class="step pending">Explainability Map Generation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Result Dashboard -->
+                <div id="result-area" class="hidden">
+                    <div class="dashboard-header">
+                        <h2>Analysis Complete</h2>
+                        <span id="result-badge" class="badge">FAKE</span>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="card result-score">
+                            <h3>Detection Analysis</h3>
+                            <div class="score-details mt-4">
+                                <div class="score-row">Fake Probability: <span id="fake-prob" class="val danger">92%</span></div>
+                                <div class="score-row">Authenticity Score: <span id="auth-score" class="val success">8%</span></div>
+                            </div>
+                            <p id="score-description" class="mt-4">High probability of manipulation.</p>
+                            
+                            <div id="suspicious-frames-container" class="hidden mt-4">
+                                <h4>Suspicious Frames Discovered</h4>
+                                <p id="suspicious-frames-list" class="frames-list"></p>
+                            </div>
+                        </div>
+
+                        <div class="card result-explain">
+                            <h3>Explainability Map</h3>
+                            <div class="heatmap-container">
+                                <img id="heatmap-img" src="" alt="Heatmap showing manipulated areas">
+                            </div>
+                            <p class="expl-note">Highlights over detected face regions indicate anomalous features flagged by the model.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="model-info mt-4 card" style="background-color: var(--bg-hover);">
+                        <h3>About the Detection Model</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">This competition prototype uses a cascaded analysis pipeline. It extracts keyframes from media, detects human faces using OpenCV routines, and analyzes spatial inconsistencies. The explainability map specifically highlights the facial regions where potential manipulation artifacts were observed.</p>
+                    </div>
+
+                    <button id="btn-scan-again" class="primary-btn mt-4" style="width: 100%;">Scan Another File</button>
+                </div>
+            </section>
+
+            <!-- History View -->
+            <section id="view-history" class="view hidden">
+                <h2>Recent Scans</h2>
+                <div class="history-container mt-4">
+                    <ul id="history-list" class="history-list">
+                        <!-- History items populated via JS -->
+                    </ul>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    <script src="/js/app.js"></script>
+</body>
+</html>
