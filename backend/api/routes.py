@@ -87,7 +87,9 @@ async def analyze_media(request: Request, file: UploadFile = File(...), db: Sess
     except HTTPException as e:
         return JSONResponse(status_code=e.status_code, content={"success": False, "error": e.detail})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"success": False, "error": f"Internal Server Error: {str(e)}"})
 
 
 @router.get("/history")

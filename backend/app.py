@@ -26,10 +26,12 @@ os.makedirs("uploads", exist_ok=True)
 
 # Important: The routers will be added here
 from backend.api.routes import router as api_router, limiter
+from backend.api.face_routes import router as face_router
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(api_router, prefix="/api")
+app.include_router(face_router, prefix="/api")
 
 # Mount frontend static files
 # Make sure the frontend directory exists otherwise this crashes

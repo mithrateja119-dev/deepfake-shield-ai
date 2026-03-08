@@ -2,26 +2,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // Nav
     const navScanner = document.getElementById('nav-scanner');
     const navHistory = document.getElementById('nav-history');
+    const navFace = document.getElementById('nav-face');
     const viewScanner = document.getElementById('view-scanner');
     const viewHistory = document.getElementById('view-history');
+    const viewFace = document.getElementById('view-face');
 
     navScanner.addEventListener('click', () => switchView('scanner'));
     navHistory.addEventListener('click', () => {
         switchView('history');
         fetchHistory();
     });
+    navFace.addEventListener('click', () => switchView('face'));
 
     function switchView(view) {
+        navScanner.classList.remove('active');
+        navHistory.classList.remove('active');
+        if (navFace) navFace.classList.remove('active');
+        
+        viewScanner.classList.add('hidden');
+        viewHistory.classList.add('hidden');
+        if (viewFace) viewFace.classList.add('hidden');
+
         if (view === 'scanner') {
             navScanner.classList.add('active');
-            navHistory.classList.remove('active');
             viewScanner.classList.remove('hidden');
-            viewHistory.classList.add('hidden');
-        } else {
-            navScanner.classList.remove('active');
+        } else if (view === 'history') {
             navHistory.classList.add('active');
-            viewScanner.classList.add('hidden');
             viewHistory.classList.remove('hidden');
+        } else if (view === 'face' && viewFace) {
+            navFace.classList.add('active');
+            viewFace.classList.remove('hidden');
         }
     }
 
@@ -179,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
             
         } catch (error) {
-            alert("Error during analysis. Please try again.");
+            alert("Analysis failed: " + error.message + ".\nCheck browser console for more details.");
+            console.error("Pipeline Error:", error);
             resetScanner();
         } finally {
             btnAnalyze.disabled = false;
@@ -261,4 +272,121 @@ document.addEventListener('DOMContentLoaded', () => {
             historyList.innerHTML = '<p>Failed to load history.</p>';
         }
     }
+    
+    // --- FACE VERIFICATION LOGIC ---
+    const refZone = document.getElementById('ref-drop-zone');
+    const testZone = document.getElementById('test-drop-zone');
+    const refInput = document.getElementById('ref-input');
+    const testInput = document.getElementById('test-input');
+    const refPreview = document.getElementById('ref-preview');
+    const testPreview = document.getElementById('test-preview');
+    const btnVerify = document.getElementById('btn-verify');
+    
+    const verifyLoader = document.getElementById('verify-loader');
+    const verifyResult = document.getElementById('verify-result');
+    const simScore = document.getElementById('sim-score');
+    const matchStatus = document.getElementById('match-status');
+    const errorMsg = document.getElementById('error-msg');
+    const btnResetVerify = document.getElementById('btn-reset-verify');
+
+    if (refZone && testZone) {
+        let refFile = null;
+        let testFile = null;
+
+        function setupZone(zone, input, previewElement, fileVarSetter) {
+            zone.addEventListener('click', () => input.click());
+            zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) handleSelection(e.dataTransfer.files[0], zone, previewElement, fileVarSetter);
+            });
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length) handleSelection(e.target.files[0], zone, previewElement, fileVarSetter);
+            });
+        }
+
+        function handleSelection(file, zone, imgElement, fileVarSetter) {
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                alert('Only JPG and PNG images are allowed.');
+                return;
+            }
+            Array.from(zone.children).forEach(c => {
+                if(c.tagName !== 'INPUT' && c.tagName !== 'IMG') c.classList.add('hidden');
+            });
+            imgElement.src = URL.createObjectURL(file);
+            imgElement.style.display = 'block';
+            fileVarSetter(file);
+            checkReady();
+        }
+
+        setupZone(refZone, refInput, refPreview, (f) => refFile = f);
+        setupZone(testZone, testInput, testPreview, (f) => testFile = f);
+
+        function checkReady() {
+            if (refFile && testFile) btnVerify.disabled = false;
+        }
+
+        btnVerify.addEventListener('click', async () => {
+            if (!refFile || !testFile) return;
+
+            btnVerify.classList.add('hidden');
+            verifyLoader.classList.remove('hidden');
+            verifyResult.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('reference_image', refFile);
+            formData.append('test_image', testFile);
+
+            try {
+                const response = await fetch('/api/verify-face', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                verifyLoader.classList.add('hidden');
+                verifyResult.classList.remove('hidden');
+
+                if (!data.success && data.error) {
+                    errorMsg.textContent = data.error;
+                    errorMsg.classList.remove('hidden');
+                    simScore.textContent = "--";
+                    matchStatus.textContent = "Error";
+                    matchStatus.className = "val danger";
+                } else {
+                    simScore.textContent = data.similarity_score.toFixed(2);
+                    if (data.match) {
+                        matchStatus.textContent = "Same Person";
+                        matchStatus.className = "match-true";
+                    } else {
+                        matchStatus.textContent = "Different Person";
+                        matchStatus.className = "match-false";
+                    }
+                }
+            } catch (error) {
+                verifyLoader.classList.add('hidden');
+                verifyResult.classList.remove('hidden');
+                errorMsg.textContent = "Network error. Please try again.";
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        btnResetVerify.addEventListener('click', () => {
+            refFile = null;
+            testFile = null;
+            refInput.value = '';
+            testInput.value = '';
+            refPreview.style.display = 'none';
+            testPreview.style.display = 'none';
+            Array.from(refZone.children).forEach(c => c.classList.remove('hidden'));
+            Array.from(testZone.children).forEach(c => c.classList.remove('hidden'));
+            btnVerify.disabled = true;
+            btnVerify.classList.remove('hidden');
+            verifyResult.classList.add('hidden');
+        });
+    }
+
 });

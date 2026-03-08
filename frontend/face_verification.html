@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Verification | Deepfake Shield V2</title>
+    <!-- Google Fonts for typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Extra specific styles for double upload panes -->
+    <style>
+        .split-upload {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .upload-card {
+            background-color: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem 1rem;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-card.dragover { border-color: var(--primary); background-color: var(--bg-hover); }
+        .upload-card .preview-img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; margin-top: 1rem; display: none; }
+        .upload-card h3 { font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .result-block {
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .result-title { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 1rem; }
+        .match-true { color: var(--success); font-weight: bold; font-size: 1.25rem; }
+        .match-false { color: var(--danger); font-weight: bold; font-size: 1.25rem; }
+        /* Mobile specific */
+        @media (max-width: 768px) {
+            .split-upload { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="navbar">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <h1>Deepfake Shield</h1>
+            </div>
+            <nav>
+                <button class="nav-btn" onclick="window.location.href='/'">Detecion Scanner</button>
+                <button class="nav-btn active">Face Verification</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="hero">
+                <h2>Face Verification</h2>
+                <p>Upload a Reference Image alongside a Verification Image to securely check identity match.</p>
+            </section>
+
+            <div class="split-upload">
+                <!-- Reference Image -->
+                <div class="upload-card" id="ref-drop-zone">
+                    <div class="upload-icon">👤</div>
+                    <h3>Reference Image</h3>
+                    <p class="text-muted text-sm">Drag & drop or click</p>
+                    <input type="file" id="ref-input" accept=".jpg,.jpeg,.png" hidden>
+                    <img id="ref-preview" class="preview-img" alt="Reference Preview">
+                </div>
+
+                <!-- Test Image -->
+                <div class="upload-card" id="test-drop-zone">
+                    <div class="upload-icon">🔍</div>
+                    <h3>Verification Image</h3>
+                    <p class="text-muted text-sm">Drag & drop or click</p>
+                    <input type="file" id="test-input" accept=".jpg,.jpeg,.png" hidden>
+                    <img id="test-preview" class="preview-img" alt="Verification Preview">
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <button id="btn-verify" class="primary-btn" style="padding: 1rem 3rem; font-size: 1.1rem;" disabled>Verify Face</button>
+            </div>
+
+            <!-- Analyzing Loader -->
+            <div id="verify-loader" class="hidden" style="text-align: center; margin-bottom: 2rem;">
+                <h3 class="progress-title">Extracting Facial Embeddings...</h3>
+            </div>
+
+            <!-- Verification Results -->
+            <div id="verify-result" class="result-block hidden">
+                <h2 class="result-title">Verification Results</h2>
+                <div style="margin: 1.5rem 0;">
+                    <div class="score-row" style="justify-content: center; gap: 1rem;">
+                        Similarity Score: <span id="sim-score" style="color: var(--primary);">0.00</span>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    Result: <span id="match-status" class="val">Unknown</span>
+                </div>
+                
+                <p id="error-msg" class="danger hidden" style="margin-top: 1rem; color: var(--danger);"></p>
+
+                <button id="btn-reset-verify" class="secondary-btn mt-4">Scan Another Pair</button>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/js/face_app.js"></script>
+</body>
+</html>
